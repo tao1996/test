@@ -1,0 +1,9 @@
+src/bin
+src/libs
+src/Makefile
+src/*.exe
+src/*.dll
+/out
+/Magisk
+*.zip
+*.gz

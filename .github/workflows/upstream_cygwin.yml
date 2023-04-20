@@ -1,0 +1,49 @@
+# This is a sync magiskboot lastest source with Actions push
+
+name: update_upstream_cygwin
+
+on:
+  push:
+    paths:
+      - ".github/workflows/upstream_cygwin.yml"
+  pull_request:
+    paths:
+      - ".github/workflows/upstream_cygwin.yml"
+  workflow_dispatch:
+  schedule:
+    - cron: "10 0 * * *"
+
+jobs:
+  update_upstream:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup environment
+        run: |
+          sudo apt-get install -y git wget curl zip unzip ssh
+
+      - name: Clone repo
+        run: |
+          git clone --recurse-submodules https://github.com/xiaoxindada/magiskboot_ndk_on_linux.git -b cygwin magiskboot
+
+      - name: Update source
+        run: |
+          cd $GITHUB_WORKSPACE/magiskboot
+          sudo ./build.sh update_code
+
+      - name: Create commit and push
+        run: |
+          cd $GITHUB_WORKSPACE/magiskboot
+          UPDATE_ETC_UTC_TIME=$(date +%Y-%m-%d-%H:%M)  # Etc/UTC timezone
+          sudo timedatectl set-timezone 'Asia/Shanghai'
+          UPDATE_SHANGHAI_TIME=$(date +%Y-%m-%d-%H:%M)
+          git config --global user.email "2245062854@qq.com"
+          git config --global user.name "xiaoxindada"
+          git add .
+          git commit -sm "Update code date: Asia/Shanghai: $UPDATE_SHANGHAI_TIME
+          > Etc/UTC: $UPDATE_ETC_UTC_TIME"
+          git remote rm origin
+          git remote add origin https://xiaoxindada:${{ secrets.GITHUB_TOKEN }}@github.com/xiaoxindada/magiskboot_ndk_on_linux.git
+          git push origin cygwin
